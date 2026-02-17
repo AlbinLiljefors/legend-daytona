@@ -10,7 +10,6 @@ import {
   Eye,
   EyeOff,
   Globe,
-  ShieldCheck,
   AlertTriangle,
   Weight,
 } from "lucide-react";
@@ -74,42 +73,17 @@ export function GraphSidebar({
         );
 
       case "system":
-        // L2: "Verified only" toggle
+        // L2: No user-facing filters
         return (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-sidebar-foreground" />
-                <div>
-                  <Label className="text-sm text-sidebar-foreground">Verified only</Label>
-                  <p className="text-xs text-muted-foreground">Code-verified edges</p>
-                </div>
-              </div>
-              <Switch
-                checked={edgeFilters.verifiedOnly}
-                onCheckedChange={(checked) => onEdgeFilterChange({ verifiedOnly: checked })}
-              />
-            </div>
-          </div>
+          <p className="text-xs text-muted-foreground italic">
+            All system edges shown
+          </p>
         );
 
       case "module":
-        // L3: "Verified only" + "Show circular only" (the money feature)
+        // L3: "Show circular only" (the money feature)
         return (
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-sidebar-foreground" />
-                <div>
-                  <Label className="text-sm text-sidebar-foreground">Verified only</Label>
-                  <p className="text-xs text-muted-foreground">Code-verified edges</p>
-                </div>
-              </div>
-              <Switch
-                checked={edgeFilters.verifiedOnly}
-                onCheckedChange={(checked) => onEdgeFilterChange({ verifiedOnly: checked })}
-              />
-            </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-red-500" />
