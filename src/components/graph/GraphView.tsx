@@ -268,7 +268,7 @@ function GraphViewInner() {
   const repo = allRepos.find((r) => r.id === repoId) || allRepos[0];
 
   // Get repo-specific system groups
-  const repoSystemGroups = useMemo(() => getSystemGroupsForRepo(repoId), [repoId]);
+  const repoSystemGroups = useMemo(() => getSystemGroupsForRepo(repoId), [repoId, generatedLoaded]);
   const groupLabels: Record<string, string> = useMemo(
     () => Object.fromEntries(repoSystemGroups.map((g) => [g.id, g.label])),
     [repoSystemGroups]
@@ -281,8 +281,8 @@ function GraphViewInner() {
       return nodes.filter((n) => n.parentId === fileModuleId);
     }
     return nodes;
-  }, [zoomLevel, fileModuleId, repoId]);
-  const graphEdges = useMemo(() => getEdgesForLevel(zoomLevel, repoId), [zoomLevel, repoId]);
+  }, [zoomLevel, fileModuleId, repoId, generatedLoaded]);
+  const graphEdges = useMemo(() => getEdgesForLevel(zoomLevel, repoId), [zoomLevel, repoId, generatedLoaded]);
   const groupedNodes = useMemo(() => getNodesGroupedBySystem(graphNodes, repoId), [graphNodes, repoId]);
 
   // L4 overview: when at file level without drilled module, group by parentId
