@@ -392,6 +392,12 @@ function GraphViewInner() {
     return groupLabels;
   }, [isL4Overview, effectiveGroups, groupLabels]);
 
+  // Build color lookup from effective groups
+  const effectiveGroupColors: Record<string, string> = useMemo(
+    () => Object.fromEntries(effectiveGroups.map((g) => [g.id, g.color])),
+    [effectiveGroups]
+  );
+
   // Create group background nodes that move with the canvas
   const groupNodes: Node[] = useMemo(() => {
     if (zoomLevel === "system" || zoomLevel === "context") return [];
@@ -412,6 +418,7 @@ function GraphViewInner() {
             group: group,
             width: bounds.width,
             height: bounds.height,
+            color: effectiveGroupColors[groupKey] || "",
           },
           zIndex: -1,
           selectable: false,
@@ -421,7 +428,7 @@ function GraphViewInner() {
     }
 
     return groups;
-  }, [regularNodes, zoomLevel, effectiveGroupLabels]);
+  }, [regularNodes, zoomLevel, effectiveGroupLabels, effectiveGroupColors]);
 
   // Combine group nodes (background) with regular nodes
   const initialNodes: Node[] = useMemo(() => {
