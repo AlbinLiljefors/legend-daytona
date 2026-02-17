@@ -267,15 +267,6 @@ function GraphViewInner() {
   const allRepos = useMemo(() => getAllRepositories(), [generatedLoaded]);
   const repo = allRepos.find((r) => r.id === repoId) || allRepos[0];
 
-  // Wait for data to load before rendering the graph
-  if (!generatedLoaded || !repo) {
-    return (
-      <div className="h-screen w-screen flex items-center justify-center bg-background">
-        <div className="text-muted-foreground text-sm">Loading architecture data...</div>
-      </div>
-    );
-  }
-
   // Get repo-specific system groups
   const repoSystemGroups = useMemo(() => getSystemGroupsForRepo(repoId), [repoId]);
   const groupLabels: Record<string, string> = useMemo(
@@ -639,6 +630,14 @@ function GraphViewInner() {
       }
     }
   };
+
+  if (!generatedLoaded || !repo) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-background">
+        <div className="text-muted-foreground text-sm">Loading architecture data...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen w-screen flex flex-col bg-background overflow-hidden">
