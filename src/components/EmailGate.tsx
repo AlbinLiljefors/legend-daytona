@@ -46,9 +46,9 @@ export function SignInPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmedEmail = email.trim().toLowerCase();
     const trimmedName = name.trim();
-    if (!trimmedEmail || !trimmedEmail.includes("@") || !trimmedName) return;
+    if (!trimmedName) return;
+    const trimmedEmail = email.trim().toLowerCase() || `${trimmedName.replace(/\s+/g, ".")}@anonymous`;
     localStorage.setItem(EMAIL_KEY, trimmedEmail);
     localStorage.setItem(NAME_KEY, trimmedName);
     identifyUser(trimmedEmail, trimmedName);
@@ -88,11 +88,10 @@ export function SignInPage() {
             className="w-full px-4 py-3 rounded-lg border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
           />
           <input
-            type="email"
+            type="text"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@daytona.io"
-            required
+            placeholder="Email (optional)"
             className="w-full px-4 py-3 rounded-lg border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
           />
           <Button type="submit" className="w-full py-3 gap-2">
