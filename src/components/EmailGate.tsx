@@ -19,6 +19,23 @@ function identifyUser(email: string, name: string) {
   window.posthog?.identify(email, { email, name });
 }
 
+function generateAnonName(): string {
+  const adjectives = [
+    "Swift", "Bright", "Calm", "Bold", "Keen",
+    "Sharp", "Wise", "Quick", "Cool", "Epic",
+    "Noble", "Brave", "Vivid", "Agile", "Clever",
+  ];
+  const nouns = [
+    "Fox", "Owl", "Bear", "Wolf", "Hawk",
+    "Lynx", "Puma", "Raven", "Otter", "Eagle",
+    "Falcon", "Bison", "Crane", "Heron", "Tiger",
+  ];
+  const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+  const noun = nouns[Math.floor(Math.random() * nouns.length)];
+  const num = Math.floor(Math.random() * 900) + 100;
+  return `${adj}${noun}${num}`;
+}
+
 export function getStoredUser(): { email: string; name: string } | null {
   const email = localStorage.getItem(EMAIL_KEY);
   const name = localStorage.getItem(NAME_KEY);
@@ -52,6 +69,15 @@ export function SignInPage() {
     localStorage.setItem(EMAIL_KEY, trimmedEmail);
     localStorage.setItem(NAME_KEY, trimmedName);
     identifyUser(trimmedEmail, trimmedName);
+    navigate("/loading/daytona");
+  };
+
+  const handleSkip = () => {
+    const anonName = generateAnonName();
+    const anonEmail = `${anonName.toLowerCase()}@anonymous`;
+    localStorage.setItem(EMAIL_KEY, anonEmail);
+    localStorage.setItem(NAME_KEY, anonName);
+    identifyUser(anonEmail, anonName);
     navigate("/loading/daytona");
   };
 
@@ -99,6 +125,21 @@ export function SignInPage() {
             <ArrowRight className="w-4 h-4" />
           </Button>
         </form>
+
+        <div className="flex items-center gap-3 mt-6">
+          <div className="h-px flex-1 bg-border" />
+          <span className="text-xs text-muted-foreground">or</span>
+          <div className="h-px flex-1 bg-border" />
+        </div>
+
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={handleSkip}
+          className="w-full mt-4 text-muted-foreground hover:text-foreground"
+        >
+          Continue without signing in
+        </Button>
 
         <p className="text-xs text-muted-foreground text-center mt-6">
           Your info is only used to personalize your exploration session.
