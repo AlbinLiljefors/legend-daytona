@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Sparkles } from "lucide-react";
+import { X, Sparkles, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type ZoomLevel = "context" | "system" | "module" | "file";
@@ -20,43 +20,55 @@ interface Step {
 
 const steps: Step[] = [
   {
-    title: "Your architecture",
+    title: "Welcome to your atlas",
     description:
-      "This is your codebase. Each card is a component. Lines show dependencies.",
+      "This is Daytona's codebase, auto-mapped from source code. Every card is a component. Lines show real dependencies extracted from the code.",
   },
   {
     title: "Context Level",
     description:
-      "The 30,000ft view — actors and external systems that interact with your system.",
+      "The 30,000ft view — actors, external services, and how they interact with Daytona.",
     zoomLevel: "context",
   },
   {
     title: "System Level",
     description:
-      "Deployment units — services, CLIs, web apps. How the system is actually shipped.",
+      "Deployment units — the Go API server, Docker engine, CLI, workspace orchestration. How Daytona is actually shipped.",
     zoomLevel: "system",
   },
   {
     title: "Module Level",
     description:
-      "Logical modules within each system. This is where the real architecture lives.",
+      "Logical modules within each system. This is where the real architecture lives — drill into any system to see its internals.",
     zoomLevel: "module",
   },
   {
     title: "File Level",
     description:
-      "Double-click any module to see its files and exact dependency weights. Drag nodes to rearrange them.",
+      "Double-click any module to see its actual files and dependency weights between directories.",
   },
   {
-    title: "Edit the map",
+    title: "Make it yours",
     description:
-      "Click + to add components. Drag between handles to draw connections. Right-click any node or edge to delete it. All changes persist in your browser.",
+      "This map is AI-generated — it's a starting point, not the final word. Click any node's name or description to edit it inline. Fix labels, rewrite descriptions, add context only you know.",
+    badge: "Key Feature",
   },
   {
-    title: "What's next",
+    title: "Add & connect",
     description:
-      "Coming soon: generate Jira tickets, Linear issues, or PRDs from your architecture decisions. Visualization is step one — this becomes the decision layer for software engineering.",
-    badge: "Coming Soon",
+      "Missing a component? Click the + button to create new nodes. Drag between node handles to draw dependency lines. Right-click any node or edge to remove it.",
+    badge: "Key Feature",
+  },
+  {
+    title: "Your edits persist",
+    description:
+      "Every change you make — renames, new nodes, repositioned cards, deleted edges — is saved automatically in your browser. Come back anytime and pick up where you left off.",
+    badge: "Key Feature",
+  },
+  {
+    title: "Help us improve",
+    description:
+      "We're testing whether developers find enough value in manually refining these maps to make them accurate. Your edits help us understand what matters. Don't hold back — reshape this atlas until it matches your understanding of the codebase.",
   },
 ];
 
@@ -122,7 +134,11 @@ export function OnboardingTour({ isOpen, onClose, onZoomChange }: OnboardingTour
                 </span>
                 {currentStep.badge && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
-                    <Sparkles className="w-3 h-3" />
+                    {currentStep.badge === "Key Feature" ? (
+                      <Pencil className="w-3 h-3" />
+                    ) : (
+                      <Sparkles className="w-3 h-3" />
+                    )}
                     {currentStep.badge}
                   </span>
                 )}
@@ -147,7 +163,7 @@ export function OnboardingTour({ isOpen, onClose, onZoomChange }: OnboardingTour
               </div>
 
               <Button onClick={handleNext} size="sm">
-                {isLastStep ? "Got it!" : "Next"}
+                {isLastStep ? "Start exploring" : "Next"}
               </Button>
             </div>
           </motion.div>

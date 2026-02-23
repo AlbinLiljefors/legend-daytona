@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Layers, GripVertical, Plus, Cable, Search } from "lucide-react";
+import { ArrowRight, Layers, Network } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HeroBackground } from "./HeroBackground";
 
@@ -8,11 +8,11 @@ export function LandingPage() {
   const navigate = useNavigate();
 
   const handleExplore = () => {
-    navigate("/repos");
+    navigate("/signin");
   };
 
   return (
-    <div className="relative bg-background min-h-screen">
+    <div className="relative bg-background h-screen overflow-hidden">
       {/* Fixed header */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}
@@ -52,7 +52,7 @@ export function LandingPage() {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/80 border border-border/50 backdrop-blur-sm">
               <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              <span className="text-sm font-medium text-muted-foreground">Understand code in seconds, not hours</span>
+              <span className="text-sm font-medium text-muted-foreground">Daytona codebase — fully mapped</span>
             </div>
           </motion.div>
 
@@ -63,9 +63,9 @@ export function LandingPage() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight text-foreground mb-6 leading-[1.1]"
           >
-            Navigate any codebase
+            Explore Daytona's architecture,
             <br />
-            <span className="text-primary">like you wrote it</span>
+            <span className="text-primary">visually</span>
           </motion.h1>
 
           {/* Subheadline */}
@@ -75,8 +75,7 @@ export function LandingPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-2xl mx-auto leading-relaxed"
           >
-            Auto-generate interactive architecture diagrams. See dependencies,
-            data flows, and how everything connects — instantly.
+            Interactive architecture diagrams. Go services, Docker orchestration, API layers — from system level to individual files.
           </motion.p>
 
           {/* Single CTA */}
@@ -90,6 +89,7 @@ export function LandingPage() {
               onClick={handleExplore}
               className="gap-2.5 text-base px-8 h-14 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 group"
             >
+              <Network className="w-5 h-5" />
               Explore the map
               <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </Button>
@@ -97,65 +97,8 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Features section */}
-      <section className="relative z-10 py-24 px-6">
-        <div className="max-w-5xl mx-auto">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="text-3xl font-bold text-center mb-12 text-foreground"
-          >
-            Built for exploration
-          </motion.h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                icon: GripVertical,
-                title: "Drag to rearrange",
-                description: "Move nodes to match your mental model of the architecture.",
-              },
-              {
-                icon: Plus,
-                title: "Add components",
-                description: "Create custom nodes directly on the graph with the + button.",
-              },
-              {
-                icon: Cable,
-                title: "Draw connections",
-                description: "Connect nodes by dragging between their handles.",
-              },
-              {
-                icon: Search,
-                title: "Four zoom levels",
-                description: "Context → System → Module → File. Drill down to any depth.",
-              },
-            ].map((feature, i) => (
-              <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.1 }}
-                className="rounded-xl border bg-card p-6 space-y-3"
-              >
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <feature.icon className="w-5 h-5 text-primary" />
-                </div>
-                <h3 className="font-semibold text-foreground">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {feature.description}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Minimal footer */}
-      <footer className="py-4 px-6">
+      <footer className="absolute bottom-0 left-0 right-0 py-4 px-6">
         <div className="max-w-6xl mx-auto flex items-center justify-between text-xs text-muted-foreground/50">
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 rounded-md bg-primary/20 flex items-center justify-center">
@@ -163,7 +106,7 @@ export function LandingPage() {
             </div>
             <span>Legend</span>
           </div>
-          <p>&copy; 2025 Legend</p>
+          <p>&copy; 2026 Legend</p>
         </div>
       </footer>
     </div>

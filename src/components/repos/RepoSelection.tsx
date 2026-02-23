@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Search, Star, Clock, LogOut, Layers, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { demoRepositories, getAllRepositories, Repository } from "@/data/demoData";
 import { loadGeneratedManifest, loadGeneratedRepo } from "@/data/loader";
+import { getStoredUser, clearStoredUser } from "@/components/EmailGate";
 
 const languageIcons: Record<string, string> = {
   TypeScript: "TS",
@@ -45,7 +46,13 @@ export function RepoSelection() {
     navigate(`/loading/${repo.id}`);
   };
 
+  const user = getStoredUser();
+  const initials = user?.name
+    ? user.name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2)
+    : "??";
+
   const handleSignOut = () => {
+    clearStoredUser();
     navigate("/");
   };
 
@@ -67,10 +74,9 @@ export function RepoSelection() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="gap-2">
                 <Avatar className="w-8 h-8">
-                  <AvatarImage src="https://github.com/shadcn.png" />
-                  <AvatarFallback>JD</AvatarFallback>
+                  <AvatarFallback>{initials}</AvatarFallback>
                 </Avatar>
-                <span className="hidden sm:inline">Jane Developer</span>
+                <span className="hidden sm:inline">{user?.name ?? "User"}</span>
                 <ChevronDown className="w-4 h-4 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
