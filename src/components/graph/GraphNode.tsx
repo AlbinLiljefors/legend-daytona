@@ -9,7 +9,8 @@ import {
   Settings,
   AlertTriangle,
   Users,
-  Cloud
+  Cloud,
+  Pencil,
 } from "lucide-react";
 import { NodeType } from "@/data/demoData";
 import { cn } from "@/lib/utils";
@@ -71,6 +72,8 @@ export interface GraphNodeData {
   isDimmed?: boolean;
   purpose?: string;
   level?: string;
+  isUserEdited?: boolean;
+  isUserAdded?: boolean;
 }
 
 function GraphNodeComponent({ data, selected }: NodeProps) {
@@ -91,7 +94,8 @@ function GraphNodeComponent({ data, selected }: NodeProps) {
       className={cn(
         "relative bg-card rounded-lg border-l-4 border legend-shadow-md cursor-pointer transition-all duration-200 min-w-[180px] max-w-[220px]",
         config.borderColor,
-        selected && "ring-2 ring-primary legend-shadow-lg",
+        nodeData.isUserAdded && "border-dashed",
+        selected && "ring-2 ring-primary shadow-[0_0_12px_rgba(59,130,246,0.4)]",
         nodeData.hasProblem && "ring-2 ring-node-problem/50",
         nodeData.isHighlighted && "ring-2 ring-primary/50 legend-shadow-lg"
       )}
@@ -118,6 +122,9 @@ function GraphNodeComponent({ data, selected }: NodeProps) {
               </p>
             )}
           </div>
+          {nodeData.isUserEdited && (
+            <Pencil className="w-3 h-3 text-muted-foreground shrink-0" />
+          )}
           {nodeData.hasProblem && (
             <AlertTriangle className="w-4 h-4 text-node-problem shrink-0" />
           )}

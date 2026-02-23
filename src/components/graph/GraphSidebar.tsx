@@ -12,6 +12,7 @@ import {
   Globe,
   AlertTriangle,
   Weight,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -28,6 +29,11 @@ export interface EdgeFilters {
   weightThreshold: number;
 }
 
+export interface AnimationSettings {
+  enabled: boolean;
+  speed: number;
+}
+
 interface GraphSidebarProps {
   zoomLevel: ZoomLevel;
   onZoomChange: (level: ZoomLevel) => void;
@@ -37,6 +43,9 @@ interface GraphSidebarProps {
   focusMode: FocusModeState;
   onFocusModeChange: (updates: Partial<FocusModeState>) => void;
   hasSelectedNode: boolean;
+  animationEnabled: boolean;
+  animationSpeed: number;
+  onAnimationSettingsChange: (settings: Partial<AnimationSettings>) => void;
 }
 
 const zoomLevels: { level: ZoomLevel; label: string; icon: React.ElementType }[] = [
@@ -55,9 +64,13 @@ export function GraphSidebar({
   focusMode,
   onFocusModeChange,
   hasSelectedNode,
+  animationEnabled,
+  animationSpeed,
+  onAnimationSettingsChange,
 }: GraphSidebarProps) {
   const [isEdgeFiltersOpen, setIsEdgeFiltersOpen] = useState(true);
   const [isFocusModeOpen, setIsFocusModeOpen] = useState(true);
+  const [isDisplaySettingsOpen, setIsDisplaySettingsOpen] = useState(false);
 
   const zoomIndex = zoomLevels.findIndex(z => z.level === zoomLevel);
 
@@ -65,7 +78,6 @@ export function GraphSidebar({
   const renderEdgeFilters = () => {
     switch (zoomLevel) {
       case "context":
-        // L1: No filters. ≤15 edges, show everything.
         return (
           <p className="text-xs text-muted-foreground italic">
             All context edges shown (max 15)
@@ -73,7 +85,6 @@ export function GraphSidebar({
         );
 
       case "system":
-        // L2: No user-facing filters
         return (
           <p className="text-xs text-muted-foreground italic">
             All system edges shown
@@ -81,7 +92,6 @@ export function GraphSidebar({
         );
 
       case "module":
-        // L3: "Show circular only" (the money feature)
         return (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -101,7 +111,6 @@ export function GraphSidebar({
         );
 
       case "file":
-        // L4: Weight threshold slider
         return (
           <div className="space-y-3">
             <div className="flex items-center gap-2 mb-1">
@@ -197,6 +206,75 @@ export function GraphSidebar({
             exit={{ opacity: 0, height: 0 }}
           >
             {renderEdgeFilters()}
+          </motion.div>
+        )}
+      </div>
+
+      <Separator />
+
+      {/* Display Settings section */}
+      <div className="p-4">
+        <button
+          onClick={() => setIsDisplaySettingsOpen(!isDisplaySettingsOpen)}
+          className="w-full flex items-center justify-between text-sm font-medium text-sidebar-foreground mb-3"
+        >
+          <span className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4" />
+            Display Settings
+          </span>
+          {isDisplaySettingsOpen ? (
+            <ChevronDown className="w-4 h-4" />
+          ) : (
+            <ChevronRight className="w-4 h-4" />
+          )}
+        </button>
+
+        {isDisplaySettingsOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="space-y-4"
+          >
+            {/* Animation toggle */}
+            <div className="flex items-center justify-between">
+              <Label className="text-sm text-sidebar-foreground">Animated dots</Label>
+              <Switch
+                checked={animationEnabled}
+                onCheckedChange={(checked) => onAnimationSettingsChange({ enabled: checked })}
+              />
+            </div>
+
+            {/* Speed selector */}
+            <div className={cn("space-y-2", !animationEnabled && "opacity-50 pointer-events-none")}>
+              <Label className="text-sm text-sidebar-foreground">Animation Speed</Label>
+              <div className="flex gap-1">
+                <Button
+                  variant={animationSpeed === 3 ? "secondary" : "ghost"}
+                  size="sm"
+                  className="flex-1 text-xs"
+                  onClick={() => onAnimationSettingsChange({ speed: 3 })}
+                >
+                  Slow
+                </Button>
+                <Button
+                  variant={animationSpeed === 1.5 ? "secondary" : "ghost"}
+                  size="sm"
+                  className="flex-1 text-xs"
+                  onClick={() => onAnimationSettingsChange({ speed: 1.5 })}
+                >
+                  Normal
+                </Button>
+                <Button
+                  variant={animationSpeed === 0.8 ? "secondary" : "ghost"}
+                  size="sm"
+                  className="flex-1 text-xs"
+                  onClick={() => onAnimationSettingsChange({ speed: 0.8 })}
+                >
+                  Fast
+                </Button>
+              </div>
+            </div>
           </motion.div>
         )}
       </div>

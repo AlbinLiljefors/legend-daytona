@@ -78,6 +78,12 @@ export interface TechnicalDecision {
   };
 }
 
+export interface CodeFile {
+  path: string;
+  language: string;
+  symbolCount: number;
+}
+
 export interface GraphNode {
   id: string;
   label: string;
@@ -87,6 +93,7 @@ export interface GraphNode {
   level: ZoomLevel;
   parentId?: string;
   group?: SystemGroup;
+  codeFiles?: CodeFile[];
   hasProblem?: boolean;
   problemDescription?: string;
   functionalities?: {
@@ -120,6 +127,7 @@ export interface GraphNode {
   logicLocations?: LogicLocation[];
   implementationFiles?: ImplementationFile[];
   technicalDecisions?: TechnicalDecision[];
+  confidenceScore?: number;  // 0.0-1.0
 }
 
 export type EdgeType = "integrates-with" | "depends-on" | "dependency";
@@ -133,6 +141,9 @@ export interface GraphEdge {
   verified: boolean;
   weight?: number;
   isCircular?: boolean;
+  communicationMode?: "sync" | "async";
+  protocol?: string;          // "http" | "grpc" | "kafka" | "rabbitmq" | "redis" | "postgres" | "sqs" etc.
+  dataSource?: "scip" | "config" | "ai";  // provenance tracking
 }
 
 export interface SystemGroupDef {

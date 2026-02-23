@@ -12,6 +12,12 @@ export interface AnimatedEdgeData {
   label?: string;
   verified?: boolean;
   weight?: number;
+  communicationMode?: "sync" | "async";
+  protocol?: string;
+  dataSource?: "scip" | "config" | "ai";
+  isUserEdited?: boolean;
+  animationEnabled?: boolean;
+  animationSpeed?: number;
 }
 
 const edgeColors: Record<EdgeType, { normal: string; highlighted: string }> = {
@@ -38,6 +44,11 @@ function AnimatedEdgeComponent({
   const isDimmed = edgeData?.isDimmed || false;
   const verified = edgeData?.verified !== false; // default true for backwards compat
   const weight = edgeData?.weight || 1;
+  const communicationMode = edgeData?.communicationMode;
+  const protocol = edgeData?.protocol;
+  const isUserEdited = edgeData?.isUserEdited || false;
+  const animationEnabled = edgeData?.animationEnabled !== false; // default true
+  const animationSpeed = edgeData?.animationSpeed || 1.5;
 
   const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX,
@@ -56,12 +67,17 @@ function AnimatedEdgeComponent({
     ? Math.min(1 + Math.log2(weight), 5)
     : isHighlighted ? 2.5 : 1.5;
 
-  // Edge styling based on type
+  // Edge styling based on type — priority: circular > unverified > async/sync
   const getEdgeStyle = () => {
     const baseStyle = {
       strokeWidth: weightWidth,
       opacity: isDimmed ? 0.15 : verified ? 1 : 0.7,
     };
+
+    // User-edited edges get a subtle glow
+    if (isUserEdited && !isDimmed) {
+      baseStyle.opacity = 0.9;
+    }
 
     // Circular overrides ALL other styling
     if (isCircular) {
@@ -80,6 +96,11 @@ function AnimatedEdgeComponent({
       return { ...baseStyle, stroke, strokeDasharray: "6 3" };
     }
 
+    // Async edges: dashed pattern
+    if (communicationMode === "async") {
+      return { ...baseStyle, stroke, strokeDasharray: "8 4" };
+    }
+
     switch (edgeType) {
       case "integrates-with":
         return { ...baseStyle, stroke, strokeDasharray: "4 4" };
@@ -94,8 +115,43 @@ function AnimatedEdgeComponent({
 
   const edgeStyle = getEdgeStyle();
 
+  // Compute animation duration: async edges are slower
+  const dotDuration = isCircular
+    ? "1s"
+    : communicationMode === "async"
+      ? `${animationSpeed * 1.5}s`
+      : `${animationSpeed}s`;
+
+  // Dot color for async edges
+  const dotColor = isCircular
+    ? "hsl(0, 84%, 60%)"
+    : communicationMode === "async"
+      ? "hsl(190, 60%, 55%)"
+      : colors.highlighted;
+
+  // Build display label — prepend protocol if set
+  const displayLabel = edgeData?.label
+    ? protocol
+      ? `${protocol}: ${edgeData.label}`
+      : edgeData.label
+    : undefined;
+
+  // Label visibility: show only when highlighted, or always for circular edges
+  const showLabel = displayLabel && !isDimmed && (isHighlighted || isCircular);
+
   return (
     <g className="react-flow__edge">
+      {/* User-edited glow effect */}
+      {isUserEdited && !isDimmed && (
+        <path
+          d={edgePath}
+          fill="none"
+          stroke={edgeStyle.stroke}
+          strokeWidth={(weightWidth || 1.5) + 4}
+          strokeOpacity={0.12}
+        />
+      )}
+
       {/* Main edge */}
       <BaseEdge
         id={id}
@@ -103,9 +159,9 @@ function AnimatedEdgeComponent({
         style={edgeStyle}
       />
 
-      {/* Edge label — rendered in HTML layer above all SVG edges */}
+      {/* Edge label -- only when highlighted or circular */}
       <EdgeLabelRenderer>
-        {edgeData?.label && !isDimmed && (
+        {showLabel && (
           <div
             style={{
               position: 'absolute',
@@ -114,29 +170,29 @@ function AnimatedEdgeComponent({
             }}
             className="bg-background border border-border rounded px-1.5 py-0.5 text-muted-foreground text-[9px] leading-none whitespace-nowrap"
           >
-            {edgeData.label}
+            {displayLabel}
           </div>
         )}
       </EdgeLabelRenderer>
 
-      {/* Animated dot overlay - only show when not dimmed */}
-      {!isDimmed && (
+      {/* Animated dot overlay - only show when not dimmed and animation enabled */}
+      {!isDimmed && animationEnabled && (
         <circle
           r={isHighlighted ? 4 : 3}
-          fill={isCircular ? "hsl(0, 84%, 60%)" : colors.highlighted}
+          fill={dotColor}
           className={cn(
             isCircular ? "animate-pulse" : ""
           )}
         >
           <animateMotion
-            dur={isCircular ? "1s" : "1.5s"}
+            dur={dotDuration}
             repeatCount="indefinite"
             path={edgePath}
           />
         </circle>
       )}
 
-      {/* Circular dependency indicator — the killer feature */}
+      {/* Circular dependency indicator */}
       {isCircular && (
         <>
           {/* Pulsing glow */}
@@ -149,15 +205,17 @@ function AnimatedEdgeComponent({
             className="animate-pulse"
           />
           {/* Second dot going opposite direction */}
-          <circle r={3} fill="hsl(0, 84%, 60%)" className="animate-pulse">
-            <animateMotion
-              dur="1s"
-              repeatCount="indefinite"
-              path={edgePath}
-              keyPoints="1;0"
-              keyTimes="0;1"
-            />
-          </circle>
+          {animationEnabled && (
+            <circle r={3} fill="hsl(0, 84%, 60%)" className="animate-pulse">
+              <animateMotion
+                dur="1s"
+                repeatCount="indefinite"
+                path={edgePath}
+                keyPoints="1;0"
+                keyTimes="0;1"
+              />
+            </circle>
+          )}
         </>
       )}
     </g>

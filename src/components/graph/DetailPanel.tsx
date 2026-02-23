@@ -25,7 +25,8 @@ import {
   Info,
   AlertCircle,
   FolderOpen,
-  Code2
+  Code2,
+  Pencil,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +43,10 @@ import {
   ImplementationFile,
   TechnicalDecision
 } from "@/data/demoData";
+import { NodeFieldEdits } from "@/hooks/useUserEdits";
+import { EditableText } from "./EditableText";
+import { EditableList } from "./EditableList";
+import { FileTree } from "./FileTree";
 import { cn } from "@/lib/utils";
 
 interface DetailPanelProps {
@@ -49,6 +54,11 @@ interface DetailPanelProps {
   onClose: () => void;
   onNavigateToNode: (nodeId: string) => void;
   onNavigateToFile?: (filePath: string) => void;
+  onEditNode?: (node: GraphNode) => void;
+  onEditField?: (nodeId: string, field: keyof NodeFieldEdits, value: any) => void;
+  getFieldEdits?: (nodeId: string) => NodeFieldEdits;
+  getNodeNote?: (nodeId: string) => string;
+  setNodeNote?: (nodeId: string, note: string) => void;
 }
 
 const nodeTypeConfig: Record<NodeType, {
@@ -103,10 +113,10 @@ function hasEnhancedData(node: GraphNode): boolean {
   return !!(node.purpose || node.howItWorks || node.architectureDetails ||
             node.logicLocations || node.implementationFiles || node.technicalDecisions ||
             node.dependencies || node.architecture || node.keyDecisions ||
-            node.technicalSpecs);
+            node.technicalSpecs || (node.codeFiles && node.codeFiles.length > 0));
 }
 
-export function DetailPanel({ node, onClose, onNavigateToNode, onNavigateToFile }: DetailPanelProps) {
+export function DetailPanel({ node, onClose, onNavigateToNode, onNavigateToFile, onEditNode, onEditField, getFieldEdits, getNodeNote, setNodeNote }: DetailPanelProps) {
   const [activeTab, setActiveTab] = useState("overview");
 
   if (!node) return null;
@@ -144,9 +154,21 @@ export function DetailPanel({ node, onClose, onNavigateToNode, onNavigateToFile 
                   </Badge>
                 )}
               </div>
-              <h2 className="text-xl font-semibold text-foreground truncate mb-1">
-                {node.label}
-              </h2>
+              <div className="flex items-center gap-2 mb-1">
+                <h2 className="text-xl font-semibold text-foreground truncate">
+                  {node.label}
+                </h2>
+                {onEditNode && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="shrink-0 h-7 w-7"
+                    onClick={() => onEditNode(node)}
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </Button>
+                )}
+              </div>
               <p className="text-sm text-muted-foreground font-mono">
                 {node.stats}
               </p>
@@ -185,11 +207,11 @@ export function DetailPanel({ node, onClose, onNavigateToNode, onNavigateToFile 
 
             <ScrollArea className="flex-1">
               <TabsContent value="overview" className="mt-0 p-5 space-y-4">
-                <OverviewTab node={node} />
+                <OverviewTab node={node} onEditField={onEditField} fieldEdits={getFieldEdits?.(node.id)} />
               </TabsContent>
 
               <TabsContent value="architecture" className="mt-0 p-5 space-y-4">
-                <ArchitectureTab node={node} />
+                <ArchitectureTab node={node} onEditField={onEditField} fieldEdits={getFieldEdits?.(node.id)} />
               </TabsContent>
 
               <TabsContent value="code" className="mt-0 p-5 space-y-4">
@@ -197,7 +219,7 @@ export function DetailPanel({ node, onClose, onNavigateToNode, onNavigateToFile 
               </TabsContent>
 
               <TabsContent value="decisions" className="mt-0 p-5 space-y-4">
-                <DecisionsTab node={node} />
+                <DecisionsTab node={node} onEditField={onEditField} fieldEdits={getFieldEdits?.(node.id)} getNodeNote={getNodeNote} setNodeNote={setNodeNote} />
               </TabsContent>
 
               <TabsContent value="connections" className="mt-0 p-5 space-y-4">
@@ -206,11 +228,19 @@ export function DetailPanel({ node, onClose, onNavigateToNode, onNavigateToFile 
             </ScrollArea>
           </Tabs>
         ) : (
-          <ScrollArea className="flex-1">
-            <div className="p-5 space-y-4">
-              <LegacyContent node={node} onNavigateToNode={onNavigateToNode} />
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+            <div className="px-5 pt-4">
+              <TabsList className="w-full h-9">
+                <TabsTrigger value="overview" className="text-xs px-2">Overview</TabsTrigger>
+              </TabsList>
             </div>
-          </ScrollArea>
+
+            <ScrollArea className="flex-1">
+              <TabsContent value="overview" className="mt-0 p-5 space-y-4">
+                <LegacyContent node={node} onNavigateToNode={onNavigateToNode} onEditField={onEditField} fieldEdits={getFieldEdits?.(node.id)} />
+              </TabsContent>
+            </ScrollArea>
+          </Tabs>
         )}
       </motion.div>
     </AnimatePresence>
@@ -220,14 +250,24 @@ export function DetailPanel({ node, onClose, onNavigateToNode, onNavigateToFile 
 // ==================== TAB CONTENT COMPONENTS ====================
 
 // Overview Tab: Purpose + How it Works
-function OverviewTab({ node }: { node: GraphNode }) {
+function OverviewTab({ node, onEditField, fieldEdits }: { node: GraphNode; onEditField?: DetailPanelProps["onEditField"]; fieldEdits?: NodeFieldEdits }) {
   return (
     <>
       {/* Purpose Section */}
       <InfoCard icon={<Target className="w-4 h-4" />} title="Purpose" variant="primary">
-        <p className="text-sm text-foreground leading-relaxed">
-          {node.purpose || node.description}
-        </p>
+        {onEditField ? (
+          <EditableText
+            value={node.purpose || node.description}
+            onChange={(v) => onEditField(node.id, "purpose", v)}
+            placeholder="Describe this component's purpose..."
+            multiline
+            isEdited={fieldEdits?.purpose !== undefined}
+          />
+        ) : (
+          <p className="text-sm text-foreground leading-relaxed">
+            {node.purpose || node.description}
+          </p>
+        )}
       </InfoCard>
 
       {/* How it Works Section */}
@@ -309,11 +349,12 @@ function OverviewTab({ node }: { node: GraphNode }) {
 }
 
 // Architecture Tab: System Flow, Component Interactions, Data Flow
-function ArchitectureTab({ node }: { node: GraphNode }) {
+function ArchitectureTab({ node, onEditField, fieldEdits }: { node: GraphNode; onEditField?: DetailPanelProps["onEditField"]; fieldEdits?: NodeFieldEdits }) {
   const arch = node.architectureDetails;
   const hasPipelineArch = !arch && !!(node.architecture || node.technicalSpecs);
+  const hasEditCapability = !!onEditField;
 
-  if (!arch && !hasPipelineArch) {
+  if (!arch && !hasPipelineArch && !hasEditCapability) {
     return (
       <div className="text-center py-8 text-muted-foreground">
         <Network className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -322,32 +363,57 @@ function ArchitectureTab({ node }: { node: GraphNode }) {
     );
   }
 
-  // Fallback: render pipeline fields (architecture string + technicalSpecs)
-  if (!arch && hasPipelineArch) {
+  // Fallback: render pipeline fields (architecture string + technicalSpecs) — or editable placeholders
+  if (!arch) {
     return (
       <>
-        {node.architecture && (
-          <InfoCard icon={<Network className="w-4 h-4" />} title="Architecture Overview" variant="primary">
-            <p className="text-sm text-foreground leading-relaxed">
-              {node.architecture}
-            </p>
-          </InfoCard>
-        )}
+        <InfoCard icon={<Network className="w-4 h-4" />} title="Architecture Overview" variant="primary">
+          {onEditField ? (
+            <EditableText
+              value={node.architecture || ""}
+              onChange={(v) => onEditField(node.id, "architecture", v)}
+              placeholder="Describe the architecture..."
+              multiline
+              isEdited={fieldEdits?.architecture !== undefined}
+            />
+          ) : node.architecture ? (
+            <p className="text-sm text-foreground leading-relaxed">{node.architecture}</p>
+          ) : (
+            <p className="text-sm text-muted-foreground italic">No architecture overview</p>
+          )}
+        </InfoCard>
 
-        {node.technicalSpecs && node.technicalSpecs.length > 0 && (
-          <InfoCard icon={<Cpu className="w-4 h-4" />} title="Technical Specs" variant="secondary">
+        <InfoCard icon={<Cpu className="w-4 h-4" />} title="Technical Specs" variant="secondary">
+          {onEditField ? (
+            <EditableList
+              items={(node.technicalSpecs || []).map((s) => `${s.title}: ${s.details}`)}
+              onChange={(items) => {
+                const specs = items.map((item) => {
+                  const colonIdx = item.indexOf(":");
+                  if (colonIdx > 0) {
+                    return { title: item.slice(0, colonIdx).trim(), details: item.slice(colonIdx + 1).trim() };
+                  }
+                  return { title: item, details: "" };
+                });
+                onEditField(node.id, "technicalSpecs", specs);
+              }}
+              placeholder="Title: Details..."
+              addLabel="Add spec"
+              editedIndices={fieldEdits?.technicalSpecs ? new Set(fieldEdits.technicalSpecs.map((_, i) => i)) : undefined}
+            />
+          ) : node.technicalSpecs && node.technicalSpecs.length > 0 ? (
             <div className="space-y-2">
               {node.technicalSpecs.map((spec, index) => (
                 <div key={index} className="flex gap-3 text-sm">
-                  <span className="font-medium text-muted-foreground shrink-0 w-24">
-                    {spec.title}
-                  </span>
+                  <span className="font-medium text-muted-foreground shrink-0 w-24">{spec.title}</span>
                   <span className="text-foreground">{spec.details}</span>
                 </div>
               ))}
             </div>
-          </InfoCard>
-        )}
+          ) : (
+            <p className="text-sm text-muted-foreground italic">No technical specs</p>
+          )}
+        </InfoCard>
       </>
     );
   }
@@ -391,7 +457,7 @@ function ArchitectureTab({ node }: { node: GraphNode }) {
   );
 }
 
-// Code Tab: Logic Locations, Implementation Files
+// Code Tab: File Tree, Logic Locations, Implementation Files
 function CodeTab({
   node,
   onNavigateToFile,
@@ -400,9 +466,10 @@ function CodeTab({
   onNavigateToFile?: (filePath: string) => void;
 }) {
   const hasLogic = node.logicLocations && node.logicLocations.length > 0;
-  const hasFiles = node.implementationFiles && node.implementationFiles.length > 0;
+  const hasImplFiles = node.implementationFiles && node.implementationFiles.length > 0;
+  const hasCodeFiles = node.codeFiles && node.codeFiles.length > 0;
 
-  if (!hasLogic && !hasFiles) {
+  if (!hasLogic && !hasImplFiles && !hasCodeFiles) {
     return (
       <div className="text-center py-8 text-muted-foreground">
         <FileCode className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -413,9 +480,18 @@ function CodeTab({
 
   return (
     <>
+      {/* SCIP Code Files — directory tree */}
+      {hasCodeFiles && (
+        <FileTree
+          codeFiles={node.codeFiles!}
+          nodeLevel={node.level}
+          onNavigateToFile={onNavigateToFile}
+        />
+      )}
+
       {/* Logic Locations */}
       {hasLogic && (
-        <div>
+        <div className={hasCodeFiles ? "pt-4 border-t border-border/50" : ""}>
           <div className="flex items-center gap-2 text-sm font-semibold text-foreground mb-3">
             <Code2 className="w-4 h-4 text-primary" />
             Logic Locations
@@ -433,8 +509,8 @@ function CodeTab({
       )}
 
       {/* Implementation Files */}
-      {hasFiles && (
-        <div className={hasLogic ? "pt-4 border-t border-border/50" : ""}>
+      {hasImplFiles && (
+        <div className={(hasLogic || hasCodeFiles) ? "pt-4 border-t border-border/50" : ""}>
           <div className="flex items-center gap-2 text-sm font-semibold text-foreground mb-3">
             <FolderOpen className="w-4 h-4 text-primary" />
             Implementation Files
@@ -454,19 +530,24 @@ function CodeTab({
   );
 }
 
-// Decisions Tab: Technical Decisions
-function DecisionsTab({ node }: { node: GraphNode }) {
+// Decisions Tab: Technical Decisions + Note (replaces Notes tab)
+function DecisionsTab({
+  node,
+  onEditField,
+  fieldEdits,
+  getNodeNote,
+  setNodeNote,
+}: {
+  node: GraphNode;
+  onEditField?: DetailPanelProps["onEditField"];
+  fieldEdits?: NodeFieldEdits;
+  getNodeNote?: (nodeId: string) => string;
+  setNodeNote?: (nodeId: string, note: string) => void;
+}) {
   const hasStructuredDecisions = node.technicalDecisions && node.technicalDecisions.length > 0;
   const hasPipelineDecisions = node.keyDecisions && node.keyDecisions.length > 0;
-
-  if (!hasStructuredDecisions && !hasPipelineDecisions) {
-    return (
-      <div className="text-center py-8 text-muted-foreground">
-        <Lightbulb className="w-8 h-8 mx-auto mb-2 opacity-50" />
-        <p className="text-sm">No technical decisions documented</p>
-      </div>
-    );
-  }
+  const hasEditCapability = !!onEditField;
+  const noteValue = getNodeNote?.(node.id) || "";
 
   return (
     <div className="space-y-4">
@@ -474,16 +555,41 @@ function DecisionsTab({ node }: { node: GraphNode }) {
         <DecisionCard key={index} decision={decision} />
       ))}
 
-      {!hasStructuredDecisions && hasPipelineDecisions && (
+      {!hasStructuredDecisions && (
         <InfoCard icon={<Lightbulb className="w-4 h-4" />} title="Key Decisions" variant="secondary">
-          <ul className="space-y-2">
-            {node.keyDecisions!.map((decision, index) => (
-              <li key={index} className="text-sm text-foreground leading-relaxed flex gap-2">
-                <span className="text-primary shrink-0">•</span>
-                <span>{decision}</span>
-              </li>
-            ))}
-          </ul>
+          {hasEditCapability ? (
+            <EditableList
+              items={node.keyDecisions || []}
+              onChange={(items) => onEditField!(node.id, "keyDecisions", items)}
+              placeholder="Describe a decision..."
+              addLabel="Add decision"
+              editedIndices={fieldEdits?.keyDecisions ? new Set(fieldEdits.keyDecisions.map((_, i) => i)) : undefined}
+            />
+          ) : hasPipelineDecisions ? (
+            <ul className="space-y-2">
+              {node.keyDecisions!.map((decision, index) => (
+                <li key={index} className="text-sm text-foreground leading-relaxed flex gap-2">
+                  <span className="text-primary shrink-0">•</span>
+                  <span>{decision}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-muted-foreground italic">No decisions documented</p>
+          )}
+        </InfoCard>
+      )}
+
+      {/* Note field — replaces the separate Notes tab */}
+      {setNodeNote && (
+        <InfoCard icon={<Pencil className="w-4 h-4" />} title="Note" variant="muted">
+          <EditableText
+            value={noteValue}
+            onChange={(v) => setNodeNote(node.id, v)}
+            placeholder="Add context or tribal knowledge..."
+            multiline
+            isEdited={!!noteValue}
+          />
         </InfoCard>
       )}
     </div>
@@ -613,18 +719,32 @@ function ConnectionsTab({
 // Legacy content for nodes without enhanced data
 function LegacyContent({
   node,
-  onNavigateToNode
+  onNavigateToNode,
+  onEditField,
+  fieldEdits,
 }: {
   node: GraphNode;
   onNavigateToNode: (nodeId: string) => void;
+  onEditField?: DetailPanelProps["onEditField"];
+  fieldEdits?: NodeFieldEdits;
 }) {
   return (
     <>
       {/* Purpose */}
       <InfoCard icon={<Target className="w-4 h-4" />} title="Purpose" variant="primary">
-        <p className="text-sm text-foreground leading-relaxed">
-          {node.description}
-        </p>
+        {onEditField ? (
+          <EditableText
+            value={node.description}
+            onChange={(v) => onEditField(node.id, "description", v)}
+            placeholder="Describe this component..."
+            multiline
+            isEdited={fieldEdits?.description !== undefined}
+          />
+        ) : (
+          <p className="text-sm text-foreground leading-relaxed">
+            {node.description}
+          </p>
+        )}
       </InfoCard>
 
       {/* How It Works */}
@@ -773,6 +893,7 @@ function LegacyContent({
     </>
   );
 }
+
 
 // ==================== SUB-COMPONENTS ====================
 

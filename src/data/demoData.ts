@@ -26,6 +26,7 @@ export type {
   LogicLocation,
   ImplementationFile,
   TechnicalDecision,
+  CodeFile,
   GraphNode,
   GraphEdge,
   EdgeType,

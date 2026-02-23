@@ -22,18 +22,18 @@ const steps: Step[] = [
   {
     title: "Your architecture",
     description:
-      "This is Daytona's codebase. Each card is a component. Lines show dependencies.",
+      "This is your codebase. Each card is a component. Lines show dependencies.",
   },
   {
     title: "Context Level",
     description:
-      "The 30,000ft view — actors and external systems that interact with Daytona.",
+      "The 30,000ft view — actors and external systems that interact with your system.",
     zoomLevel: "context",
   },
   {
     title: "System Level",
     description:
-      "Deployment units — CLI, daemon, runner, proxy. How Daytona is actually shipped.",
+      "Deployment units — services, CLIs, web apps. How the system is actually shipped.",
     zoomLevel: "system",
   },
   {
@@ -45,12 +45,17 @@ const steps: Step[] = [
   {
     title: "File Level",
     description:
-      "Double-click any module to see its files and exact dependency weights.",
+      "Double-click any module to see its files and exact dependency weights. Drag nodes to rearrange them.",
+  },
+  {
+    title: "Edit the map",
+    description:
+      "Click + to add components. Drag between handles to draw connections. Right-click any node or edge to delete it. All changes persist in your browser.",
   },
   {
     title: "What's next",
     description:
-      "Soon: create new components directly on this graph, then generate Jira tickets, Linear issues, or PRDs from your decisions. Visualization is step one — this becomes the decision layer for software engineering.",
+      "Coming soon: generate Jira tickets, Linear issues, or PRDs from your architecture decisions. Visualization is step one — this becomes the decision layer for software engineering.",
     badge: "Coming Soon",
   },
 ];
