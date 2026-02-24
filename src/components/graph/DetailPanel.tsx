@@ -386,7 +386,7 @@ function ArchitectureTab({ node, onEditField, fieldEdits }: { node: GraphNode; o
         <InfoCard icon={<Cpu className="w-4 h-4" />} title="Technical Specs" variant="secondary">
           {onEditField ? (
             <EditableList
-              items={(node.technicalSpecs || []).map((s) => `${s.title}: ${s.details}`)}
+              items={(fieldEdits?.technicalSpecs ?? node.technicalSpecs ?? []).map((s) => `${s.title}: ${s.details}`)}
               onChange={(items) => {
                 const specs = items.map((item) => {
                   const colonIdx = item.indexOf(":");
@@ -559,7 +559,7 @@ function DecisionsTab({
         <InfoCard icon={<Lightbulb className="w-4 h-4" />} title="Key Decisions" variant="secondary">
           {hasEditCapability ? (
             <EditableList
-              items={node.keyDecisions || []}
+              items={fieldEdits?.keyDecisions ?? node.keyDecisions ?? []}
               onChange={(items) => onEditField!(node.id, "keyDecisions", items)}
               placeholder="Describe a decision..."
               addLabel="Add decision"
